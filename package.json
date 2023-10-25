@@ -1,0 +1,65 @@
+{
+  "name": "@appril/core",
+  "version": "0.2.0",
+  "description": "Appril Core",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "engines": {
+    "node": "20.8",
+    "npm": "10"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "// ✨ seems exports.types not fully supported by all editors yet?": "",
+  "typesVersions": {
+    "*": {
+      "router": [
+        "./pkg/router/index.d.ts"
+      ],
+      "bodyparser": [
+        "./pkg/bodyparser/index.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    "./router": {
+      "require": "./pkg/router/index.js",
+      "types": "./pkg/router/index.d.ts"
+    },
+    "./bodyparser": {
+      "require": "./pkg/bodyparser/index.js",
+      "types": "./pkg/bodyparser/index.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ build router": "",
+    "build:router": "esbundler lib/router/index.ts --sourcemap=inline --outdir=pkg/router",
+    "postbuild:router": "tsc -p lib/router/tsconfig.json",
+    "// ✨ build bodyparser": "",
+    "build:bodyparser": "esbundler lib/bodyparser/index.ts --external-exclude:formidable --sourcemap=inline --outdir=pkg/bodyparser",
+    "postbuild:bodyparser": "tsc -p lib/bodyparser/tsconfig.json",
+    "// ✨ build": "",
+    "prebuild": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "build": "for e in router bodyparser; do npm run build:$e; done",
+    "// ✨ publish": "",
+    "prepub": "npm run build",
+    "pub": "npm pub"
+  },
+  "dependencies": {
+    "formidable": "^3.5.1",
+    "kleur": "^4.1.5",
+    "raw-body": "^2.5.2"
+  },
+  "devDependencies": {
+    "@appril/dev": "^0.2.0",
+    "@appril/scripts": "^0.2.0",
+    "@types/formidable": "^3.4.4",
+    "@types/koa": "^2.13.10",
+    "@types/koa__router": "^12.0.2",
+    "@types/koa-bodyparser": "^4.3.11",
+    "@types/node": "^20.8.8",
+    "esbuild": "^0.19.5",
+    "typescript": "^5.2.2"
+  }
+}

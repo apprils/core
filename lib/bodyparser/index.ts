@@ -1,0 +1,157 @@
+
+import zlib from "zlib";
+
+import IncomingForm from "formidable";
+import rawParser from "raw-body";
+
+import type {
+  JsonOptions, FormOptions,
+  TrimOption, Trimmer, RawOptions,
+} from "./@types";
+
+import config from "./config";
+
+export default { config, json, form, raw }
+
+export { config }
+export const bodyparser = { json, form, raw }
+export * from "./@types";
+
+// importing Middleware from ../router or from koa causing type errors
+type Middleware = (env: any, next: Function) => Promise<void>;
+
+export function json(
+  opts: JsonOptions = {},
+): Middleware {
+
+  return async function jsonBodyparser(env, next) {
+
+    const form = IncomingForm({
+      maxFieldsSize: opts.limit || config.json.limit,
+      ...opts,
+    })
+
+    const trimmer = Trimmer(opts.trim)
+
+    env.request.body = await new Promise((resolve, reject) => {
+
+      form.parse(env.request.req, (err, fields) => {
+
+        if (err) {
+          return reject(err)
+        }
+
+        resolve(
+          trimmer
+            ? trimmer(fields)
+            : fields
+        )
+
+      })
+
+    })
+
+    return next()
+
+  }
+
+}
+
+export function form(
+  opts: FormOptions = {},
+): Middleware {
+
+  return async function formBodyparser(env, next) {
+
+    const form = IncomingForm({
+      maxFieldsSize: opts.limit || config.form.limit,
+      maxFileSize: opts.limit || config.form.limit,
+      ...opts,
+    })
+
+    let trimmer = Trimmer(opts.trim)
+
+    if (opts.multipart || opts.urlencoded) {
+      trimmer = undefined
+    }
+
+    env.request.body = await new Promise((resolve, reject) => {
+
+      form.parse(env.request.req, (err, fields, files) => {
+
+        if (err) {
+          return reject(err)
+        }
+
+        resolve({
+          fields: trimmer
+            ? trimmer(fields)
+            : fields,
+          files,
+        })
+
+      })
+
+    })
+
+    return next()
+
+  }
+
+}
+
+export function raw(
+  opts: RawOptions = {},
+): Middleware {
+
+  return async function rawBodyparser(env, next) {
+
+    const {
+      chunkSize,
+      ...rawParserOptions
+    } = { ...config.raw, ...opts }
+
+    const stream = env.request.req.pipe(zlib.createUnzip({ chunkSize }))
+    env.request.body = await rawParser(stream, rawParserOptions)
+
+    return next()
+
+  }
+
+}
+
+function Trimmer(
+  trimOption: TrimOption | undefined,
+): Trimmer | undefined {
+
+  if (!Array.isArray(trimOption) || !trimOption.length) {
+    return
+  }
+
+  const trimableKeys: {
+    [key: string]: boolean
+  } = trimOption.reduce((m, k) => ({ ...m, [k]: true }), {})
+
+  const trim = (key: string, val: any) => {
+
+    if (typeof val !== "string") {
+      return val
+    }
+
+    return trimableKeys[key] || trimableKeys["*"]
+      ? val.trim()
+      : val
+
+  }
+
+  const reducer = (memo: Record<string, any>, [ key, val ]: [ string, any ]) => {
+    memo[key] = trim(key, val)
+    return memo
+  }
+
+  // accumulator is set to payload intentionally, to avoid duplication of big strings!
+  // if using a new object for accumulator then trimmed strings will be duplicated!
+  return (payload) => Object.entries(payload).reduce(reducer, payload)
+
+}
+
