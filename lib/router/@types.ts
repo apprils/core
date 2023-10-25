@@ -1,9 +1,5 @@
 
-import type {
-  DefaultState, ParameterizedContext, Next,
-  Middleware as KoaMiddleware,
-} from "koa";
-
+import type { DefaultState, ParameterizedContext, Next } from "koa";
 import type { RouterParamContext } from "koa__router";
 
 declare module "koa" {
@@ -49,11 +45,10 @@ export type Middleware<
   StateT = DefaultState,
   ContextT = DefaultContext,
   BodyT = unknown,
-> = KoaMiddleware<
-  StateT,
-  ContextT & RouterParamContext<StateT, ContextT>,
-  BodyT
->
+> = (
+  env: Env<StateT, ContextT, BodyT>,
+  next: Next,
+) => any
 
 export type NamedMiddleware<
   StateT = DefaultState,
