@@ -17,6 +17,9 @@
       "router": [
         "./pkg/router/index.d.ts"
       ],
+      "queryparser": [
+        "./pkg/queryparser/index.d.ts"
+      ],
       "bodyparser": [
         "./pkg/bodyparser/index.d.ts"
       ]
@@ -27,6 +30,10 @@
       "require": "./pkg/router/index.js",
       "types": "./pkg/router/index.d.ts"
     },
+    "./queryparser": {
+      "require": "./pkg/queryparser/index.js",
+      "types": "./pkg/queryparser/index.d.ts"
+    },
     "./bodyparser": {
       "require": "./pkg/bodyparser/index.js",
       "types": "./pkg/bodyparser/index.d.ts"
@@ -36,12 +43,15 @@
     "// ✨ build router": "",
     "build:router": "esbundler lib/router/index.ts --sourcemap=inline --outdir=pkg/router",
     "postbuild:router": "tsc -p lib/router/tsconfig.json",
+    "// ✨ build queryparser": "",
+    "build:queryparser": "esbundler lib/queryparser/index.ts --sourcemap=inline --outdir=pkg/queryparser",
+    "postbuild:queryparser": "tsc -p lib/queryparser/tsconfig.json",
     "// ✨ build bodyparser": "",
     "build:bodyparser": "esbundler lib/bodyparser/index.ts --external-exclude:formidable --sourcemap=inline --outdir=pkg/bodyparser",
     "postbuild:bodyparser": "tsc -p lib/bodyparser/tsconfig.json",
     "// ✨ build": "",
     "prebuild": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
-    "build": "for e in router bodyparser; do npm run build:$e; done",
+    "build": "for e in router queryparser bodyparser; do npm run build:$e; done",
     "// ✨ publish": "",
     "prepub": "npm run build",
     "pub": "npm pub"
@@ -49,6 +59,7 @@
   "dependencies": {
     "formidable": "^3.5.1",
     "kleur": "^4.1.5",
+    "qs": "^6.11.2",
     "raw-body": "^2.5.2"
   },
   "devDependencies": {
@@ -60,6 +71,7 @@
     "@types/koa-bodyparser": "^4.3.12",
     "@types/node": "^20.9.0",
     "esbuild": "^0.19.5",
+    "koa": "^2.14.2",
     "typescript": "^5.2.2"
   }
 }
