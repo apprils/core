@@ -29,7 +29,7 @@ export type APIMethod =
 
 export type { DefaultState, Next }
 
-export type Env<
+export type Ctx<
   StateT = DefaultState,
   ContextT = DefaultContext,
   BodyT = unknown,
@@ -46,7 +46,7 @@ export type Middleware<
   ContextT = DefaultContext,
   BodyT = unknown,
 > = (
-  env: Env<StateT, ContextT, BodyT>,
+  ctx: Ctx<StateT, ContextT, BodyT>,
   next: Next,
 ) => any
 

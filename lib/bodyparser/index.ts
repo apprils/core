@@ -18,13 +18,13 @@ export const bodyparser = { json, form, raw }
 export * from "./@types";
 
 // importing Middleware from ../router or from koa causing type errors
-type Middleware = (env: any, next: Function) => Promise<void>;
+type Middleware = (ctx: any, next: Function) => Promise<void>;
 
 export function json(
   opts: JsonOptions = {},
 ): Middleware {
 
-  return async function jsonBodyparser(env, next) {
+  return async function jsonBodyparser(ctx, next) {
 
     const form = IncomingForm({
       maxFieldsSize: opts.limit || config.json.limit,
@@ -33,9 +33,9 @@ export function json(
 
     const trimmer = Trimmer(opts.trim)
 
-    env.request.body = await new Promise((resolve, reject) => {
+    ctx.request.body = await new Promise((resolve, reject) => {
 
-      form.parse(env.request.req, (err, fields) => {
+      form.parse(ctx.request.req, (err, fields) => {
 
         if (err) {
           return reject(err)
@@ -61,7 +61,10 @@ export function form(
   opts: FormOptions = {},
 ): Middleware {
 
-  return async function formBodyparser(env, next) {
+  return async function formBodyparser(
+    ctx,
+    next,
+  ) {
 
     const form = IncomingForm({
       maxFieldsSize: opts.limit || config.form.limit,
@@ -75,9 +78,9 @@ export function form(
       trimmer = undefined
     }
 
-    env.request.body = await new Promise((resolve, reject) => {
+    ctx.request.body = await new Promise((resolve, reject) => {
 
-      form.parse(env.request.req, (err, fields, files) => {
+      form.parse(ctx.request.req, (err, fields, files) => {
 
         if (err) {
           return reject(err)
@@ -104,15 +107,18 @@ export function raw(
   opts: RawOptions = {},
 ): Middleware {
 
-  return async function rawBodyparser(env, next) {
+  return async function rawBodyparser(
+    ctx,
+    next,
+  ) {
 
     const {
       chunkSize,
       ...rawParserOptions
     } = { ...config.raw, ...opts }
 
-    const stream = env.request.req.pipe(zlib.createUnzip({ chunkSize }))
-    env.request.body = await rawParser(stream, rawParserOptions)
+    const stream = ctx.request.req.pipe(zlib.createUnzip({ chunkSize }))
+    ctx.request.body = await rawParser(stream, rawParserOptions)
 
     return next()
 
