@@ -72,6 +72,6 @@
     "@types/node": "^20.10.3",
     "esbuild": "^0.19.8",
     "koa": "^2.14.2",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.3"
   }
 }
