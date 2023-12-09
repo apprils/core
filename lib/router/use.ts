@@ -2,7 +2,8 @@
 import type {
   DefaultState, DefaultContext,
   Middleware, NamedMiddleware,
-  Use, APIMethod, RouteSpec,
+  Use, UseMethodMap, UseMethodEntry,
+  APIMethod, RouteSpec,
 } from "./@types";
 
 import * as specs from "./specs";
@@ -34,6 +35,11 @@ function use<
   middleware: NamedMiddleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
 
+/*
+  * use only on get and post
+  *   use([ "get", "post" ], ...)
+  */
+
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
@@ -61,6 +67,44 @@ function use<
   middleware: NamedMiddleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
 
+/*
+  * use only on get(":id")
+  *   use({ get: ":id" }, ...)
+  *
+  * use only on get(":id") or get without params
+  *   use({ get: [ ":id", "" ] }, ...)
+  *
+  * use only on get(":id") and any post
+  *   use({ get: ":id", post: "*" })
+  */
+
+function use<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+  BodyT = unknown,
+>(
+  apiMethods: UseMethodMap,
+  middleware: Middleware<StateT, ContextT>,
+): RouteSpec<StateT, ContextT, BodyT>;
+
+function use<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+  BodyT = unknown,
+>(
+  apiMethods: UseMethodMap,
+  middleware: Middleware<StateT, ContextT>[],
+): RouteSpec<StateT, ContextT, BodyT>;
+
+function use<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+  BodyT = unknown,
+>(
+  apiMethods: UseMethodMap,
+  middleware: NamedMiddleware<StateT, ContextT, BodyT>[],
+): RouteSpec<StateT, ContextT, BodyT>;
+
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
@@ -71,7 +115,7 @@ function use<
   return {
     // formal definitions to match RouteSpec
     apiMethod: "head", method: "HEAD", params: "", middleware: [],
-    use: $use<StateT, ContextT, BodyT>(args),
+    use: useMapper<StateT, ContextT, BodyT>(args),
   }
 }
 
@@ -82,7 +126,7 @@ function use<
 * eg: use([ { abc: x }, { 2: x }, { 1: x } ]) would always iterate as [ "abc", "2", "1" ]
 * TODO: find a way to enforce single key objects at compile time, using typescript.
 */
-function $use<
+function useMapper<
   StateT,
   ContextT,
   BodyT,
@@ -90,12 +134,18 @@ function $use<
   args: unknown[],
 ): Use<StateT, ContextT, BodyT>[] {
 
-  let _apiMethods: APIMethod[]
+  let _apiMethods: UseMethodEntry[] = []
   let _use: ReturnType<typeof middlewareMapper<StateT, ContextT, BodyT>>
 
   if (args.length === 2) {
 
-    _apiMethods = args[0] as APIMethod[]
+    if (Array.isArray(args[0])) {
+      _apiMethods = args[0].map((e) => [ e, undefined ])
+    }
+    else {
+      _apiMethods = Object.entries(args[0] as UseMethodMap) as UseMethodEntry[]
+    }
+
     _use = middlewareMapper<StateT, ContextT, BodyT>(args[1])
 
   }
@@ -105,20 +155,12 @@ function $use<
       return args[0].use as Use<StateT, ContextT>[]
     }
 
-    _apiMethods = []
+    _apiMethods = Object.keys(specs).map((e) => [ e, undefined ]) as UseMethodEntry[]
     _use = middlewareMapper<StateT, ContextT, BodyT>(args[0])
 
   }
   else {
     throw new Error(`Wrong number of arguments, expected 1 or 2, given ${ args.length }`)
-  }
-
-  if (!Array.isArray(_apiMethods)) {
-    throw new Error(`Expected an array of API Methods, use any of ${ Object.keys(specs) }`)
-  }
-
-  if (!_apiMethods.length) {
-    _apiMethods = Object.keys(specs) as APIMethod[]
   }
 
   const use: Use<StateT, ContextT, BodyT>[] = []

@@ -38,10 +38,11 @@ export function routeMapper(
 
           if (name) {
 
-            const prevUse = routeUse.filter((e) => e.apiMethod === apiMethod && e.name === name)
+            const prevUse = routeUse.filter((e) => e.name === name)
 
-            if (prevUse?.length) {
+            if (prevUse.length) {
               for (const prevUseEntry of prevUse) {
+                prevUseEntry.apiMethod = apiMethod
                 prevUseEntry.middleware = middleware
               }
             }
@@ -66,13 +67,29 @@ export function routeMapper(
     }
 
     try {
-      for (const entry of spec.filter((e) => !e.use.length)) {
+      for (const entry of spec) {
+
+        if (entry.use.length) {
+          continue
+        }
 
         const { apiMethod, params, method, middleware } = entry
-        const apiMethodUse: Middleware[] = []
+        const useMiddleware: Middleware[] = []
 
-        for (const { middleware } of routeUse.filter((e) => e.apiMethod === apiMethod)) {
-          apiMethodUse.push(...middleware)
+        for (const use of routeUse) {
+
+          const [ useMethod, useParams ] = use.apiMethod
+
+          if (useMethod !== apiMethod) {
+            continue
+          }
+
+          if (typeof useParams === "string" && ![ params, "*" ].includes(useParams)) {
+            continue
+          }
+
+          useMiddleware.push(...use.middleware)
+
         }
 
         entries.push({
@@ -83,7 +100,7 @@ export function routeMapper(
           method,
           file,
           meta,
-          middleware: [ ...apiMethodUse, ...middleware ],
+          middleware: [ ...useMiddleware, ...middleware ],
         })
 
       }

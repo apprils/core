@@ -64,17 +64,21 @@ export type Use<
   ContextT = DefaultContext,
   BodyT = unknown,
 > = {
-  name?: string,
-  apiMethod: APIMethod,
-  middleware: Middleware<StateT, ContextT, BodyT>[],
+  name?: string;
+  apiMethod: UseMethodEntry;
+  middleware: Middleware<StateT, ContextT, BodyT>[];
 }
 
+export type UseMethodMap = Record<APIMethod, string|string[]>
+
+export type UseMethodEntry = [ method: APIMethod, params?: string | string[] ]
+
 export type RouteTemplate = Record<string, any> & {
-  name: string,
-  path: string,
-  file: string,
-  meta: any,
-  spec: RouteSpec[],
+  name: string;
+  path: string;
+  file: string;
+  meta: any;
+  spec: RouteSpec[];
 }
 
 export type RouteSpec<
@@ -82,21 +86,21 @@ export type RouteSpec<
   ContextT = DefaultContext,
   BodyT = unknown,
 > = {
-  apiMethod: APIMethod,
-  method: HTTPMethod,
-  params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>[],
-  use: Use<StateT, ContextT, BodyT>[],
+  apiMethod: APIMethod;
+  method: HTTPMethod;
+  params: string;
+  middleware: Middleware<StateT, ContextT, BodyT>[];
+  use: Use<StateT, ContextT, BodyT>[];
 }
 
 export type RouteEntry = {
-  name: string,
-  base: string,
-  path: string,
-  params: string,
-  method: HTTPMethod,
-  file: string,
-  meta: any,
-  middleware: any[],
+  name: string;
+  base: string;
+  path: string;
+  params: string;
+  method: HTTPMethod;
+  file: string;
+  meta: any;
+  middleware: any[];
 }
 
