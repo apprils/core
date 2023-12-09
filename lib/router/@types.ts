@@ -69,7 +69,7 @@ export type Use<
   middleware: Middleware<StateT, ContextT, BodyT>[];
 }
 
-export type UseMethodMap = Record<APIMethod, string|string[]>
+export type UseMethodMap = Partial<Record<APIMethod, string|string[]>>
 
 export type UseMethodEntry = [ method: APIMethod, params?: string | string[] ]
 
