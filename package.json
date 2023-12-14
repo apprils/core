@@ -54,7 +54,8 @@
     "build": "for e in router queryparser bodyparser; do npm run build:$e; done",
     "// ✨ publish": "",
     "prepub": "npm run build",
-    "pub": "npm pub"
+    "pub": "npm pub",
+    "postpub": "mkdir -p var/pub; npm pack --pack-destination var/pub"
   },
   "dependencies": {
     "formidable": "^3.5.1",
