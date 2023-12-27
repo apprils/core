@@ -1,6 +1,7 @@
 
 import type { DefaultState, ParameterizedContext, Next } from "koa";
 import type { RouterParamContext } from "koa__router";
+import type { Stream } from "stream";
 
 declare module "koa" {
   interface Request {
@@ -59,14 +60,34 @@ export type NamedMiddleware<
   Middleware<StateT, ContextT> | Middleware<StateT, ContextT>[]
 >
 
+// use throw when needed to say NotFound (or another error):
+// throw "404: Not Found"
+// throw "400: Bad Request"
+// throw "statuscode: [some message]"
+export type MiddlewareHandlerReturn =
+  | string
+  | number
+  | boolean
+  | null
+  | Stream
+  | Buffer
+  | any[]
+  | Record<string, any>
+
+export type MiddlewareHandler<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+> = (
+  ctx: Ctx<StateT, ContextT>,
+) => Promise<MiddlewareHandlerReturn>
+
 export type Use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 > = {
   name?: string;
   apiMethod: UseMethodEntry;
-  middleware: Middleware<StateT, ContextT, BodyT>[];
+  middleware: Middleware<StateT, ContextT>[];
 }
 
 export type UseMethodMap = Partial<Record<APIMethod, string|string[]>>
@@ -90,7 +111,7 @@ export type RouteSpec<
   method: HTTPMethod;
   params: string;
   middleware: Middleware<StateT, ContextT, BodyT>[];
-  use: Use<StateT, ContextT, BodyT>[];
+  use: Use<StateT, ContextT>[];
 }
 
 export type RouteEntry = {

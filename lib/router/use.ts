@@ -11,29 +11,30 @@ import { pushWarningEntry } from "./print";
 
 export { use }
 
+/**
+  * use on any method any params
+  * */
+
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT>
-): RouteSpec<StateT, ContextT, BodyT>;
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT>[],
-): RouteSpec<StateT, ContextT, BodyT>;
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
-  middleware: NamedMiddleware<StateT, ContextT, BodyT>[],
-): RouteSpec<StateT, ContextT, BodyT>;
+  middleware: NamedMiddleware<StateT, ContextT>[],
+): RouteSpec<StateT, ContextT>;
 
 /*
   * use only on get and post
@@ -43,29 +44,26 @@ function use<
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   apiMethods: APIMethod[],
   middleware: Middleware<StateT, ContextT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   apiMethods: APIMethod[],
   middleware: Middleware<StateT, ContextT>[],
-): RouteSpec<StateT, ContextT, BodyT>;
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   apiMethods: APIMethod[],
-  middleware: NamedMiddleware<StateT, ContextT, BodyT>[],
-): RouteSpec<StateT, ContextT, BodyT>;
+  middleware: NamedMiddleware<StateT, ContextT>[],
+): RouteSpec<StateT, ContextT>;
 
 /*
   * use only on get(":id")
@@ -81,41 +79,37 @@ function use<
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   apiMethods: UseMethodMap,
   middleware: Middleware<StateT, ContextT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   apiMethods: UseMethodMap,
   middleware: Middleware<StateT, ContextT>[],
-): RouteSpec<StateT, ContextT, BodyT>;
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   apiMethods: UseMethodMap,
-  middleware: NamedMiddleware<StateT, ContextT, BodyT>[],
-): RouteSpec<StateT, ContextT, BodyT>;
+  middleware: NamedMiddleware<StateT, ContextT>[],
+): RouteSpec<StateT, ContextT>;
 
 function use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 >(
   ...args: unknown[]
-): RouteSpec<StateT, ContextT, BodyT> {
+): RouteSpec<StateT, ContextT> {
   return {
     // formal definitions to match RouteSpec
     apiMethod: "head", method: "HEAD", params: "", middleware: [],
-    use: useMapper<StateT, ContextT, BodyT>(args),
+    use: useMapper<StateT, ContextT>(args),
   }
 }
 
@@ -129,13 +123,12 @@ function use<
 function useMapper<
   StateT,
   ContextT,
-  BodyT,
 >(
   args: unknown[],
-): Use<StateT, ContextT, BodyT>[] {
+): Use<StateT, ContextT>[] {
 
   let _apiMethods: UseMethodEntry[] = []
-  let _use: ReturnType<typeof middlewareMapper<StateT, ContextT, BodyT>>
+  let _use: ReturnType<typeof middlewareMapper<StateT, ContextT>>
 
   if (args.length === 2) {
 
@@ -146,7 +139,7 @@ function useMapper<
       _apiMethods = Object.entries(args[0] as UseMethodMap) as UseMethodEntry[]
     }
 
-    _use = middlewareMapper<StateT, ContextT, BodyT>(args[1])
+    _use = middlewareMapper<StateT, ContextT>(args[1])
 
   }
   else if (args.length === 1) {
@@ -156,14 +149,14 @@ function useMapper<
     }
 
     _apiMethods = Object.keys(specs).map((e) => [ e, undefined ]) as UseMethodEntry[]
-    _use = middlewareMapper<StateT, ContextT, BodyT>(args[0])
+    _use = middlewareMapper<StateT, ContextT>(args[0])
 
   }
   else {
     throw new Error(`Wrong number of arguments, expected 1 or 2, given ${ args.length }`)
   }
 
-  const use: Use<StateT, ContextT, BodyT>[] = []
+  const use: Use<StateT, ContextT>[] = []
 
   for (const apiMethod of _apiMethods) {
     for (const { name, middleware } of _use) {
@@ -178,10 +171,9 @@ function useMapper<
 function middlewareMapper<
   StateT,
   ContextT,
-  BodyT,
 >(arg: unknown): {
   name?: string,
-  middleware: Middleware<StateT, ContextT, BodyT>[]
+  middleware: Middleware<StateT, ContextT>[]
 }[] {
 
   const entries: any = []
