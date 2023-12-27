@@ -1,5 +1,5 @@
 
-import type { APIMethod, Middleware, NamedMiddleware } from "./@types";
+import type { APIMethod, Middleware, NamedMiddleware, UseMethodMap } from "./@types";
 
 import * as $use from "./use";
 import store from "./store";
@@ -32,12 +32,26 @@ function use(
 ): void;
 
 function use(
+  methods: UseMethodMap,
+  resolver: Middleware,
+): void;
+
+function use(
+  methods: UseMethodMap,
+  resolver: Middleware[],
+): void;
+
+function use(
+  methods: UseMethodMap,
+  resolver: NamedMiddleware[],
+): void;
+
+function use(
   ...args: unknown[]
 ): void {
 
-  const { use: entries } = args.length === 2
-    ? $use.use(args[0] as APIMethod[], args[1] as Middleware[])
-    : $use.use(args[0] as Middleware[])
+  // @ts-expect-error
+  const { use: entries } = $use.use(...args)
 
   store.use.push(...entries)
 

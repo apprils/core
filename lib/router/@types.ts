@@ -1,10 +1,7 @@
 
-import type {
-  DefaultState, ParameterizedContext, Next,
-  Middleware as KoaMiddleware,
-} from "koa";
-
+import type { DefaultState, ParameterizedContext, Next } from "koa";
 import type { RouterParamContext } from "koa__router";
+import type { Stream } from "stream";
 
 declare module "koa" {
   interface Request {
@@ -33,7 +30,7 @@ export type APIMethod =
 
 export type { DefaultState, Next }
 
-export type Env<
+export type Ctx<
   StateT = DefaultState,
   ContextT = DefaultContext,
   BodyT = unknown,
@@ -49,11 +46,10 @@ export type Middleware<
   StateT = DefaultState,
   ContextT = DefaultContext,
   BodyT = unknown,
-> = KoaMiddleware<
-  StateT,
-  ContextT & RouterParamContext<StateT, ContextT>,
-  BodyT
->
+> = (
+  ctx: Ctx<StateT, ContextT, BodyT>,
+  next: Next,
+) => any
 
 export type NamedMiddleware<
   StateT = DefaultState,
@@ -64,22 +60,46 @@ export type NamedMiddleware<
   Middleware<StateT, ContextT> | Middleware<StateT, ContextT>[]
 >
 
+// use throw when needed to say NotFound (or another error):
+// throw "404: Not Found"
+// throw "400: Bad Request"
+// throw "statuscode: [some message]"
+export type MiddlewareHandlerReturn =
+  | string
+  | number
+  | boolean
+  | null
+  | Stream
+  | Buffer
+  | any[]
+  | Record<string, any>
+
+export type MiddlewareHandler<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+> = (
+  ctx: Ctx<StateT, ContextT>,
+) => Promise<MiddlewareHandlerReturn>
+
 export type Use<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 > = {
-  name?: string,
-  apiMethod: APIMethod,
-  middleware: Middleware<StateT, ContextT, BodyT>[],
+  name?: string;
+  apiMethod: UseMethodEntry;
+  middleware: Middleware<StateT, ContextT>[];
 }
 
+export type UseMethodMap = Partial<Record<APIMethod, string|string[]>>
+
+export type UseMethodEntry = [ method: APIMethod, params?: string | string[] ]
+
 export type RouteTemplate = Record<string, any> & {
-  name: string,
-  path: string,
-  file: string,
-  meta: any,
-  spec: RouteSpec[],
+  name: string;
+  path: string;
+  file: string;
+  meta: any;
+  spec: RouteSpec[];
 }
 
 export type RouteSpec<
@@ -87,21 +107,21 @@ export type RouteSpec<
   ContextT = DefaultContext,
   BodyT = unknown,
 > = {
-  apiMethod: APIMethod,
-  method: HTTPMethod,
-  params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>[],
-  use: Use<StateT, ContextT, BodyT>[],
+  apiMethod: APIMethod;
+  method: HTTPMethod;
+  params: string;
+  middleware: Middleware<StateT, ContextT, BodyT>[];
+  use: Use<StateT, ContextT>[];
 }
 
 export type RouteEntry = {
-  name: string,
-  base: string,
-  path: string,
-  params: string,
-  method: HTTPMethod,
-  file: string,
-  meta: any,
-  middleware: any[],
+  name: string;
+  base: string;
+  path: string;
+  params: string;
+  method: HTTPMethod;
+  file: string;
+  meta: any;
+  middleware: any[];
 }
 

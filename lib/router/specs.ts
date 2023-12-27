@@ -1,8 +1,9 @@
 
 import type {
   DefaultState, DefaultContext,
-  Middleware, RouteSpec,
+  Middleware, MiddlewareHandler,
   APIMethod, HTTPMethod,
+  RouteSpec,
 } from "./@types";
 
 export { head, options, get, put, patch, post, del }
@@ -10,15 +11,14 @@ export { head, options, get, put, patch, post, del }
 function head<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function head<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -26,16 +26,15 @@ function head<
 function head<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function head<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -48,15 +47,14 @@ function head(...args: unknown[]): RouteSpec {
 function options<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function options<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -64,16 +62,15 @@ function options<
 function options<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function options<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -86,15 +83,14 @@ function options(...args: unknown[]): RouteSpec {
 function get<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function get<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -102,16 +98,15 @@ function get<
 function get<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function get<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -124,15 +119,14 @@ function get(...args: unknown[]): RouteSpec {
 function put<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function put<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -140,16 +134,15 @@ function put<
 function put<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function put<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -162,15 +155,14 @@ function put(...args: unknown[]): RouteSpec {
 function patch<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function patch<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -178,16 +170,15 @@ function patch<
 function patch<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function patch<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -200,15 +191,14 @@ function patch(...args: unknown[]): RouteSpec {
 function post<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function post<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -216,16 +206,15 @@ function post<
 function post<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function post<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -238,15 +227,14 @@ function post(...args: unknown[]): RouteSpec {
 function del<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function del<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   middleware: Middleware<StateT, ContextT, BodyT>[],
 ): RouteSpec<StateT, ContextT, BodyT>;
@@ -254,16 +242,15 @@ function del<
 function del<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
 >(
   params: string,
-  middleware: Middleware<StateT, ContextT, BodyT>,
-): RouteSpec<StateT, ContextT, BodyT>;
+  handler: MiddlewareHandler<StateT, ContextT>,
+): RouteSpec<StateT, ContextT>;
 
 function del<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown
+  BodyT = unknown,
 >(
   params: string,
   middleware: Middleware<StateT, ContextT, BodyT>[],
@@ -321,13 +308,13 @@ function bisectArguments(args: unknown[]): [
       throw new Error("Path expected to be a string")
     }
 
-    middleware = middlewareMapper(args[1] as Middleware)
+    middleware = middlewareMapper(args[1] as MiddlewareHandler | Middleware[])
 
   }
   else if (args.length === 1) {
 
     params = ""
-    middleware = middlewareMapper(args[0] as Middleware)
+    middleware = middlewareMapper(args[0] as MiddlewareHandler | Middleware[])
 
   }
   else {
@@ -342,13 +329,18 @@ function bisectArguments(args: unknown[]): [
 }
 
 function middlewareMapper(
-  arg: Middleware | Middleware[],
+  arg: MiddlewareHandler | Middleware[],
 ): Middleware[] {
 
-  if (typeof arg === "function") {
-    return [ arg ]
+  if (typeof arg === "function") { // MiddlewareHandler
+    return [
+      async (ctx, next) => {
+        ctx.body = await arg(ctx)
+        return next()
+      }
+    ]
   }
-  else if (Array.isArray(arg)) {
+  else if (Array.isArray(arg)) { // Middleware[]
     return arg
   }
   else {
