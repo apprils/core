@@ -1,10 +1,17 @@
 
-import Koa from "koa";
+import type Koa from "koa";
 import { parse, stringify } from "qs";
 import type { IParseOptions, IStringifyOptions } from "qs";
 
-export default function withQueryparser(
-  app: InstanceType<typeof Koa>,
+export default function withQueryparser<
+  T extends InstanceType<
+    typeof Koa<
+      Koa.DefaultState,
+      Koa.DefaultContext
+    >
+  > = never
+>(
+  app: T,
   parseOptions: IParseOptions = {},
   stringifyOptions: IStringifyOptions = {},
 ) {
