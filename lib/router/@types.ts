@@ -79,6 +79,7 @@ export type MiddlewareHandler<
   ContextT = DefaultContext,
 > = (
   ctx: Ctx<StateT, ContextT>,
+  payload?: any,
 ) => Promise<MiddlewareHandlerReturn>
 
 export type Use<
