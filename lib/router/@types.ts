@@ -40,7 +40,9 @@ export type Ctx<
   BodyT
 >
 
-export interface DefaultContext {}
+export interface DefaultContext {
+  payload: Record<string, any>;
+}
 
 export type Middleware<
   StateT = DefaultState,

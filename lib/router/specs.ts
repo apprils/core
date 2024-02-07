@@ -246,10 +246,7 @@ function middlewareMapper(arg: MiddlewareHandler | Middleware[]): Middleware[] {
     // MiddlewareHandler
     return [
       async (ctx, next) => {
-        ctx.body = await arg(
-          ctx,
-          "body" in ctx.request ? ctx.request.body : ctx.query,
-        );
+        ctx.body = await arg(ctx, ctx.payload);
         return next();
       },
     ];
