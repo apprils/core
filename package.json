@@ -40,6 +40,9 @@
     }
   },
   "scripts": {
+    "// ✨ lint": "",
+    "lint": "biome lint ./lib",
+    "// ✨ build": "",
     "esbundler": "func() { e=$1; shift; esbuild $e --bundle --platform=node --target=node20 --packages=external $*; }; func",
     "// ✨ build router": "",
     "build:router": "npm run esbundler -- lib/router/index.ts --sourcemap=inline --outdir=pkg/router",
@@ -50,18 +53,14 @@
     "// ✨ build bodyparser": "",
     "build:bodyparser": "npm run esbundler -- lib/bodyparser/index.ts --sourcemap=inline --outdir=pkg/bodyparser",
     "postbuild:bodyparser": "tsc -p lib/bodyparser/tsconfig.json",
-    "// ✨ build": "",
+    "// ✨ build package": "",
     "prebuild": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
-    "build": "for e in router queryparser bodyparser; do npm run build:$e; done"
+    "build": "set -e; npm run lint; for e in router queryparser bodyparser; do npm run build:$e; done"
   },
   "release-it": {
     "hooks": {
       "before:init": [
         "npm run build"
-      ],
-      "after:release": [
-        "mkdir -p var/pub",
-        "npm pack --pack-destination var/pub"
       ]
     }
   },
@@ -72,8 +71,8 @@
     "raw-body": "^2.5.2"
   },
   "devDependencies": {
-    "@appril/prettier-config": "^0.2.2",
     "@appril/tsconfig": "^0.2.3",
+    "@biomejs/biome": "^1.5.3",
     "@types/formidable": "^3.4.5",
     "@types/koa": "^2.14.0",
     "@types/koa__router": "^12.0.4",
@@ -81,7 +80,6 @@
     "@types/node": "^20.11.16",
     "esbuild": "^0.20.0",
     "koa": "^2.15.0",
-    "prettier": "^3.2.4",
     "release-it": "^17.0.3",
     "typescript": "^5.3.3"
   },
