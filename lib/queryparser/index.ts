@@ -1,58 +1,49 @@
-
 import type Koa from "koa";
-import { parse, stringify } from "qs";
 import type { IParseOptions, IStringifyOptions } from "qs";
+import { parse, stringify } from "qs";
 
 export default function withQueryparser<
   T extends InstanceType<
-    typeof Koa<
-      Koa.DefaultState,
-      Koa.DefaultContext
-    >
-  > = never
+    typeof Koa<Koa.DefaultState, Koa.DefaultContext>
+  > = never,
 >(
   app: T,
-  parseOptions: IParseOptions = {},
-  stringifyOptions: IStringifyOptions = {},
+  _parseOptions: IParseOptions = {},
+  _stringifyOptions: IStringifyOptions = {},
 ) {
-
-  parseOptions = {
+  const parseOptions = {
     ignoreQueryPrefix: true,
     parseArrays: true,
     arrayLimit: 100,
     parameterLimit: 100,
     depth: 5,
-    ...parseOptions
-  }
+    ..._parseOptions,
+  };
 
-  stringifyOptions = {
+  const stringifyOptions = {
     encodeValuesOnly: true,
     arrayFormat: "brackets",
-    ...stringifyOptions
-  }
+    ..._stringifyOptions,
+  } as const;
 
   const obj = {
-
     get query() {
-      return parse((this as any).querystring || "", parseOptions)
+      return parse((this as Koa.Request).querystring || "", parseOptions);
     },
 
     set query(obj: object) {
-      (this as any).querystring = stringify(obj, stringifyOptions)
-    }
-
-  }
+      (this as Koa.Request).querystring = stringify(obj, stringifyOptions);
+    },
+  };
 
   const entries = Object.getOwnPropertyNames(obj).map((name) => [
     name,
-    Object.getOwnPropertyDescriptor(obj, name)
-  ]) as [ name: string, desc: PropertyDescriptor ][]
+    Object.getOwnPropertyDescriptor(obj, name),
+  ]) as [name: string, desc: PropertyDescriptor][];
 
-  for (const [ name, desc ] of entries) {
-    Object.defineProperty(app.request, name, desc)
+  for (const [name, desc] of entries) {
+    Object.defineProperty(app.request, name, desc);
   }
 
-  return app
-
+  return app;
 }
-
