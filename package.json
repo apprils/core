@@ -21,7 +21,7 @@
         "./pkg/queryparser/index.d.ts"
       ],
       "bodyparser": [
-        "./pkg/bodyparser/index.d.ts"
+        "./pkg/bodyparser/lib/bodyparser/index.d.ts"
       ]
     }
   },
@@ -36,7 +36,7 @@
     },
     "./bodyparser": {
       "require": "./pkg/bodyparser/index.js",
-      "types": "./pkg/bodyparser/index.d.ts"
+      "types": "./pkg/bodyparser/lib/bodyparser/index.d.ts"
     }
   },
   "scripts": {
@@ -71,6 +71,7 @@
     "raw-body": "^2.5.2"
   },
   "devDependencies": {
+    "@appril/core": "file:./pkg",
     "@appril/tsconfig": "^0.2.3",
     "@biomejs/biome": "^1.5.3",
     "@types/formidable": "^3.4.5",

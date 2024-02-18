@@ -4,6 +4,7 @@
     "."
   ],
   "compilerOptions": {
+    "rootDir": "../..",
     "outDir": "../../pkg/bodyparser",
     "types": [
       "koa-bodyparser"
