@@ -1,121 +1,180 @@
-
 import { join } from "path";
+import { randomUUID } from "crypto";
 
-import type { RouteTemplate, Middleware, RouteEntry, Use } from "./@types";
+import type {
+  APIMethod,
+  HTTPMethod,
+  Middleware,
+  MiddlewareDefinition,
+  MiddleworkerDefinition,
+  UsePosition,
+  UseDefinition,
+  RouteAssets,
+  RouteEndpoint,
+} from "./@types";
+
 import store from "./store";
-import { pushRouteEntry } from "./print";
+import { pushRouteEndpoints } from "./print";
 
 export * from "./@types";
-export * from "./specs";
-export { use } from "./use";
+export * from "./definitions";
 export { debug, warnings } from "./print";
-export { config } from "./config";
 
+type Definition = UseDefinition | MiddleworkerDefinition | MiddlewareDefinition;
+
+// converting raw definitions into route endpoints.
+// route endpoints contains all necessary data for router.register
 export function routeMapper(
-  routes: Record<string, RouteTemplate>,
-): RouteEntry[] {
+  definitions: Definition[],
+  routeAssets: RouteAssets,
+  middleworkerParams: Record<number, string>,
+  payloadValidation?: Record<number, Middleware[]>,
+): RouteEndpoint[] {
+  const { name, path, file } = routeAssets;
+  const endpoints: RouteEndpoint[] = [];
 
-  const entries: RouteEntry[] = []
+  const useDefinitions: UseDefinition[] = [];
+  const middlewareDefinitions: MiddlewareDefinition[] = [];
+  const middleworkerDefinitions: MiddleworkerDefinition[] = [];
 
-  for (const { name, path, file, meta, spec } of Object.values(routes)) {
-
-    const routeUse: Use[] = []
-
-    for (const { name, apiMethod, middleware } of store.use) {
-      // creating new objects in the event middleware will be replaced
-      routeUse.push({ name, apiMethod, middleware })
+  for (const [i, definition] of definitions.entries()) {
+    if ("use" in definition) {
+      useDefinitions.push(definition);
+    } else if ("middleware" in definition) {
+      middlewareDefinitions.push({
+        ...definition,
+        payloadValidation: payloadValidation?.[i],
+      });
+    } else if ("middleworker" in definition) {
+      middleworkerDefinitions.push({
+        ...definition,
+        // biome-ignore format:
+        ...middleworkerParams[i]
+          ? { params: middleworkerParams[i] }
+          : {},
+        payloadValidation: payloadValidation?.[i],
+      });
     }
-
-    try {
-
-      for (const { use: specUse } of spec.filter((e) => e.use.length)) {
-
-        if (!Array.isArray(specUse)) {
-          continue
-        }
-
-        for (const { name, apiMethod, middleware } of specUse) {
-
-          if (name) {
-
-            const prevUse = routeUse.filter((e) => e.name === name)
-
-            if (prevUse.length) {
-              for (const prevUseEntry of prevUse) {
-                prevUseEntry.apiMethod = apiMethod
-                prevUseEntry.middleware = middleware
-              }
-            }
-            else {
-              routeUse.push({ name, apiMethod, middleware })
-            }
-
-          }
-          else {
-            routeUse.push({ name, apiMethod, middleware })
-          }
-
-        }
-
-      }
-
-    }
-    catch (error) {
-      console.error("Failed injecting `use` middleware")
-      console.log({ name, path, file }, spec)
-      throw error
-    }
-
-    try {
-      for (const entry of spec) {
-
-        if (entry.use.length) {
-          continue
-        }
-
-        const { apiMethod, params, method, middleware } = entry
-        const useMiddleware: Middleware[] = []
-
-        for (const use of routeUse) {
-
-          const [ useMethod, useParams ] = use.apiMethod
-
-          if (useMethod !== apiMethod) {
-            continue
-          }
-
-          if (typeof useParams === "string" && ![ params, "*" ].includes(useParams)) {
-            continue
-          }
-
-          useMiddleware.push(...use.middleware)
-
-        }
-
-        entries.push({
-          name,
-          base: path,
-          path: join(path, params),
-          params,
-          method,
-          file,
-          meta,
-          middleware: [ ...useMiddleware, ...middleware ],
-        })
-
-      }
-    }
-    catch (error) {
-      console.error("Failed inserting route entry")
-      console.log({ name, path, file }, spec)
-      throw error
-    }
-
-    pushRouteEntry({ name, path, file, spec })
-
   }
 
-  return entries
+  for (const {
+    method,
+    params,
+    middleware,
+    payloadValidation,
+  } of middlewareDefinitions) {
+    const [before, after] = usePartitioner(useDefinitions, { method, params });
+    endpoints.push({
+      name,
+      base: path,
+      path: join(path, params),
+      params,
+      method: httpMethodByApi(method),
+      file,
+      middleware: [
+        ...before,
+        ...(payloadValidation || []),
+        ...middleware,
+        ...after,
+        () => true,
+      ],
+    });
+  }
 
+  for (const {
+    method,
+    params,
+    middleworker,
+    payloadValidation,
+  } of middleworkerDefinitions) {
+    const [before, after] = usePartitioner(useDefinitions, { method, params });
+
+    const middleware: Middleware[] = [
+      async (ctx, next) => {
+        ctx.body = await middleworker(
+          ctx.params as never,
+          ctx.payload as never,
+          ctx,
+        );
+        return next();
+      },
+    ];
+
+    endpoints.push({
+      name,
+      base: path,
+      path: join(path, params),
+      params,
+      method: httpMethodByApi(method),
+      file,
+      middleware: [
+        ...before,
+        ...(payloadValidation || []),
+        ...middleware,
+        ...after,
+        () => true,
+      ],
+    });
+  }
+
+  pushRouteEndpoints(routeAssets, endpoints);
+
+  return endpoints;
 }
 
+function usePartitioner(
+  useDefinitions: UseDefinition[],
+  assets: {
+    method: APIMethod;
+    params: string;
+  },
+): [before: Middleware[], Middleware[]] {
+  const { method, params } = assets;
+
+  const before: Record<string, Middleware[]> = {};
+  const after: Record<string, Middleware[]> = {};
+
+  const idFactory = (name: string | undefined): string => {
+    return ["@use", method, name || randomUUID()].join(":");
+  };
+
+  for (const { use, name, $before, $after } of store.useGlobal) {
+    const id = idFactory(name);
+    if ($before.includes(method)) {
+      before[id] = use;
+    }
+    if ($after.includes(method)) {
+      after[id] = use;
+    }
+  }
+
+  for (const { use, name, $before, $after } of useDefinitions) {
+    const id = idFactory(name);
+
+    const match = (p: UsePosition) => {
+      if (typeof p === "string") {
+        return p === method;
+      }
+      for (const [meth, regx] of Object.entries(p)) {
+        if (meth === method && regx.test?.(params)) {
+          return true;
+        }
+      }
+    };
+
+    if ($before.some(match)) {
+      before[id] = use;
+    }
+    if ($after.some(match)) {
+      after[id] = use;
+    }
+  }
+
+  return [Object.values(before).flat(), Object.values(after).flat()];
+}
+
+export function httpMethodByApi(apiMethod: APIMethod): HTTPMethod {
+  return apiMethod === "del"
+    ? "DELETE"
+    : (apiMethod.toUpperCase() as HTTPMethod);
+}

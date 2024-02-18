@@ -1,13 +1,11 @@
+import type { UseDefinition, UsePositionGlobal } from "./@types";
 
-import type { Use } from "./@types";
-
-export const _use: Use[] = []
-export const _debug: string[] = []
-export const _warnings: string[][] = []
+const _useGlobal: UseDefinition<UsePositionGlobal>[] = [];
+const _debug: string[] = [];
+const _warnings: string[][] = [];
 
 export default {
-  use: _use,
+  useGlobal: _useGlobal,
   debug: _debug,
   warnings: _warnings,
-}
-
+};

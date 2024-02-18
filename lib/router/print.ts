@@ -1,124 +1,106 @@
+import {
+  green,
+  blue,
+  red,
+  yellow,
+  grey,
+  black,
+  bgBlue,
+  dim,
+} from "kleur/colors";
 
-import { green, blue, red, yellow, grey, black, bgBlue, dim } from "kleur/colors";
+import type { RouteAssets, RouteEndpoint } from "./@types";
+import store from "./store";
 
-import type { RouteSpec } from "./@types";
-import { _debug, _warnings } from "./store";
+type Printer = (line: string) => void;
 
-export function debug(printer?: Function) {
+export function debug(printer: Printer = console.log) {
+  const lines: string[] = store.debug.splice(0, store.debug.length);
 
-  const lines = _debug.splice(0, _debug.length)
-
-  if (printer) {
-    for (const line of lines) {
-      printer(line)
-    }
+  for (const line of lines) {
+    printer?.(line);
   }
 
-  return lines
-
+  return lines;
 }
 
-export function warnings(printer?: Function) {
+export function warnings(printer: Printer = console.warn) {
+  const lines = store.warnings
+    .splice(0, store.warnings.length)
+    .map((lines) => ["", ...lines.map((line) => `  ${line}  `)].join("\n"));
 
-  const lines = _warnings
-    .splice(0, _warnings.length)
-    .map((lines) => "\n" + lines.map((line) => `  ${ line }  `).join("\n"))
-
-  if (printer) {
-    for (const line of lines) {
-      printer(line)
-    }
+  for (const line of lines) {
+    printer?.(line);
   }
 
-  return lines
-
+  return lines;
 }
 
-const dot = "·"
+const dot = "·";
 
 function colorizeMethod(method: string): string {
-
   const color = {
     GET: green,
     POST: blue,
     PATCH: blue,
     PUT: blue,
     DELETE: red,
-  }[method]
+  }[method];
 
-  return color?.(method) || method
-
+  return color?.(method) || method;
 }
 
-export function pushRouteEntry(
-  {
-    name,
-    path,
-    file,
-    spec,
-  }: {
-    name: string;
-    path: string;
-    file: string;
-    spec: RouteSpec[];
-  },
+export function pushRouteEndpoints(
+  assets: RouteAssets,
+  endpoints: RouteEndpoint[],
 ) {
+  const { path, file } = assets;
+  const lines: string[] = ["\n"];
 
-  const lines: string[] = [ "\n" ]
+  lines.push(
+    [`[ ${bgBlue(black(` ${path} `))} ]`, grey(` { file: ${file} }`)].join(""),
+  );
 
-  lines.push([
-    `[ ${ bgBlue(black(` ${ path } `)) } ]`,
-    grey(` { file: ${ file } }`),
-  ].join(""))
+  const paramsMaxlength = Math.max(
+    3,
+    ...endpoints.map((e) => e.params?.length || 0),
+  );
 
-  const paramsMaxlength = Math.max(3, ...spec.map((e) => e.params?.length || 0))
+  for (const { params, method, middleware } of endpoints) {
+    const stackLengthText = ` (stack size: ${middleware.length}) `;
 
-  for (const { params, method, middleware } of spec.filter((e) => !e.use.length)) {
+    const coloredMethod = colorizeMethod(method);
 
-    const stackLengthText = ` (stack size: ${ middleware.length }) `
+    const methodText =
+      method === "GET"
+        ? `  ${coloredMethod}${grey("|HEAD")}`
+        : `  ${coloredMethod}`;
 
-    const coloredMethod = colorizeMethod(method)
-
-    const methodText = method === "GET"
-      ? `  ${ coloredMethod }${ grey("|HEAD") }`
-      : `  ${ coloredMethod }`
-
-    const spacesCount = method === "GET"
-      ? 6
-      : 14 - method.length
+    const spacesCount = method === "GET" ? 6 : 14 - method.length;
 
     const spaces = Array(spacesCount).fill(" ").join("");
 
-    const dotsCount = process.stdout.columns
-      - 16
-      - paramsMaxlength
-      - stackLengthText.length
-      - 4
+    const dotsCount =
+      process.stdout.columns -
+      16 -
+      paramsMaxlength -
+      stackLengthText.length -
+      4;
 
-    const dots = dotsCount > 0
-      ? Array(dotsCount).fill(dot).join("")
-      : 0;
+    const dots = dotsCount > 0 ? Array(dotsCount).fill(dot).join("") : 0;
 
-    lines.push([
-      methodText,
-      spaces,
-      padEnd(params, paramsMaxlength, dim(grey(dot)), yellow),
-      grey(stackLengthText),
-      dim(grey(dots)),
-    ].join(""))
+    lines.push(
+      [
+        methodText,
+        spaces,
+        padEnd(params, paramsMaxlength, dim(grey(dot)), yellow),
+        grey(stackLengthText),
+        dim(grey(dots)),
+      ].join(""),
+    );
   }
 
-  _debug.push(...lines)
-
-}
-
-export function pushWarningEntry(lines: string[]) {
-
-  _warnings.push([
-    red("[ WARNING ]"),
-    ...lines
-  ])
-
+  store.debug.push(...lines);
 }
 
 function padEnd(
@@ -127,16 +109,10 @@ function padEnd(
   fill: string,
   decorate?: (s: string) => string,
 ): string {
+  const suffixLength = maxlength - str.length;
 
-  const suffixLength = maxlength - str.length
+  const suffix =
+    suffixLength > 0 ? Array(suffixLength).fill(fill).join("") : "";
 
-  const suffix = suffixLength > 0
-    ? Array(suffixLength).fill(fill).join("")
-    : ""
-
-  return decorate
-    ? decorate(str) + suffix
-    : str + suffix
-
+  return decorate ? decorate(str) + suffix : str + suffix;
 }
-

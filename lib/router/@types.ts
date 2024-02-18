@@ -1,7 +1,5 @@
-
 import type { DefaultState, ParameterizedContext, Next } from "koa";
 import type { RouterParamContext } from "koa__router";
-import type { Stream } from "stream";
 
 declare module "koa" {
   interface Request {
@@ -17,7 +15,7 @@ export type HTTPMethod =
   | "PUT"
   | "PATCH"
   | "POST"
-  | "DELETE"
+  | "DELETE";
 
 export type APIMethod =
   | "head"
@@ -26,105 +24,96 @@ export type APIMethod =
   | "put"
   | "patch"
   | "post"
-  | "del"
+  | "del";
 
-export type { DefaultState, Next }
+export type { DefaultState, Next };
 
 export type Ctx<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
 > = ParameterizedContext<
   StateT,
-  ContextT & RouterParamContext<StateT, ContextT>,
-  BodyT
->
+  ContextT & RouterParamContext<StateT, ContextT>
+>;
 
 export interface DefaultContext {
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
 }
 
-export type Middleware<
+export interface UseIdentities {
+  bodyparser: string;
+  payload: string;
+}
+
+export type MiddlewareDefinition<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
-> = (
-  ctx: Ctx<StateT, ContextT, BodyT>,
+> = {
+  method: APIMethod;
+  params: string;
+  middleware: Middleware<StateT, ContextT>[];
+  payloadValidation?: Middleware[];
+};
+
+export type Middleware<StateT = DefaultState, ContextT = DefaultContext> = (
+  ctx: Ctx<StateT, ContextT>,
   next: Next,
-) => any
+) => void;
 
-export type NamedMiddleware<
+export type MiddleworkerDefinition<
   StateT = DefaultState,
   ContextT = DefaultContext,
-  BodyT = unknown,
-> = Record<
-  string,
-  Middleware<StateT, ContextT> | Middleware<StateT, ContextT>[]
->
+> = {
+  method: APIMethod;
+  params: string;
+  middleworker: Middleworker<StateT, ContextT>;
+  payloadValidation?: Middleware[];
+};
 
-// use throw when needed to say NotFound (or another error):
+// use throw inside handler when needed to say NotFound (or another error):
 // throw "404: Not Found"
 // throw "400: Bad Request"
 // throw "statuscode: [some message]"
-export type MiddlewareHandlerReturn =
-  | string
-  | number
-  | boolean
-  | null
-  | Stream
-  | Buffer
-  | any[]
-  | Record<string, any>
+/** biome-ignore lint: */
+type MiddleworkerReturn = any | Promise<any>;
 
-export type MiddlewareHandler<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> = (
+export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
+  params: never,
+  payload: never,
   ctx: Ctx<StateT, ContextT>,
-  payload?: any,
-) => Promise<MiddlewareHandlerReturn>
+) => MiddleworkerReturn;
 
-export type Use<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> = {
-  name?: string;
-  apiMethod: UseMethodEntry;
-  middleware: Middleware<StateT, ContextT>[];
-}
+export type UsePosition = APIMethod | Record<APIMethod, RegExp>;
+export type UsePositionGlobal = APIMethod;
 
-export type UseMethodMap = Partial<Record<APIMethod, string|string[]>>
+export type UseDefinitionBase = {
+  use: Middleware[];
+  name?: keyof UseIdentities;
+};
 
-export type UseMethodEntry = [ method: APIMethod, params?: string | string[] ]
+export type UseFactory<PositionT> = {
+  before: (...p: PositionT[]) => UseDefinition<PositionT>;
+  after: (...p: PositionT[]) => UseDefinition<PositionT>;
+  $before: PositionT[];
+  $after: PositionT[];
+};
 
-export type RouteTemplate = Record<string, any> & {
+// biome-ignore format:
+export type UseDefinition<PositionT = UsePosition> = UseDefinitionBase & UseFactory<
+  PositionT
+>;
+
+// data provided to routeMapper
+export type RouteAssets = {
   name: string;
   path: string;
   file: string;
-  meta: any;
-  spec: RouteSpec[];
-}
+};
 
-export type RouteSpec<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-  BodyT = unknown,
-> = {
-  apiMethod: APIMethod;
-  method: HTTPMethod;
-  params: string;
-  middleware: Middleware<StateT, ContextT, BodyT>[];
-  use: Use<StateT, ContextT>[];
-}
-
-export type RouteEntry = {
-  name: string;
+// data returned by routeMapper
+export type RouteEndpoint = RouteAssets & {
   base: string;
-  path: string;
   params: string;
   method: HTTPMethod;
-  file: string;
-  meta: any;
-  middleware: any[];
-}
-
+  middleware: Middleware[];
+};
