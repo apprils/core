@@ -5,8 +5,8 @@ import type {
   UseDefinition,
   UseDefinitionBase,
   UseIdentities,
-  UsePosition,
-  UsePositionGlobal,
+  UseScope,
+  UseScopeGlobal,
   MiddlewareDefinition,
   MiddleworkerDefinition,
   Middleworker,
@@ -161,25 +161,25 @@ function use(
 ): UseDefinition;
 
 function use(...args: unknown[]) {
-  return useDefinitionFactory<UsePosition>(args);
+  return useDefinitionFactory<UseScope>(args);
 }
 
 // useGlobal
-function useGlobal(middleware: Middleware): UseDefinition<UsePositionGlobal>;
-function useGlobal(middleware: Middleware[]): UseDefinition<UsePositionGlobal>;
+function useGlobal(middleware: Middleware): UseDefinition<UseScopeGlobal>;
+function useGlobal(middleware: Middleware[]): UseDefinition<UseScopeGlobal>;
 
 function useGlobal(
   namespace: keyof UseIdentities,
   middleware: Middleware,
-): UseDefinition<UsePositionGlobal>;
+): UseDefinition<UseScopeGlobal>;
 
 function useGlobal(
   namespace: keyof UseIdentities,
   middleware: Middleware[],
-): UseDefinition<UsePositionGlobal>;
+): UseDefinition<UseScopeGlobal>;
 
 function useGlobal(...args: unknown[]) {
-  return useDefinitionFactory<UsePositionGlobal>(args, (e) =>
+  return useDefinitionFactory<UseScopeGlobal>(args, (e) =>
     store.useGlobal.push(e),
   );
 }
@@ -236,45 +236,66 @@ function definitionFactory<StateT, ContextT>(
   throw new Error(`Expected 1-2 arguments, received ${args.length}`);
 }
 
-function useDefinitionFactory<PositionT>(
+function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
   args: unknown[],
-  callback?: (d: UseDefinition<PositionT>) => void,
-): UseDefinition<PositionT> {
+  callback?: (d: UseDefinition<TScope>) => void,
+): UseDefinition<TScope> {
   const definition = useDefinitionBuilder(args);
 
-  let $before: PositionT[] = [];
-  let $after: PositionT[] = [];
+  let $before: TScope[] = [];
+  let $after: TScope[] = [];
+
+  const matchFactory = (m: APIMethod, p?: string) => {
+    return (s: UseScope) => {
+      if (typeof s === "string") {
+        return s === m;
+      }
+      for (const [meth, regx] of Object.entries(s)) {
+        if (p) {
+          if (meth === m && regx.test?.(p)) {
+            return true;
+          }
+        } else if (meth === m) {
+          return true;
+        }
+      }
+    };
+  };
 
   Object.defineProperties(definition, {
     before: {
-      value: (...p: PositionT[]) => {
+      value: (...s: TScope[]) => {
         // do not push, rather replace! (to be able to override by later call)
-        $before = p;
+        $before = s;
         return definition;
       },
     },
-    $before: {
-      get() {
-        return $before;
+    beforeMatch: {
+      value: (m: APIMethod, p?: string) => {
+        // if NO opted methods/params, run before ANY method!
+        // if Some methods/params opted, run only before opted methods/params;
+        return !$before.length || $before.some(matchFactory(m, p));
       },
     },
     after: {
-      value: (...p: PositionT[]) => {
+      value: (...s: TScope[]) => {
         // do not push, rather replace! (to be able to override by later call)
-        $after = p;
+        $after = s;
         return definition;
       },
     },
-    $after: {
-      get() {
-        return $after;
+    afterMatch: {
+      value: (m: APIMethod, p?: string) => {
+        // if NO methods/params opted, do NOT run anywhere!
+        // if Some methods/params opted, run only after opted methods/params;
+        return $after.some(matchFactory(m, p));
       },
     },
   });
 
-  callback?.(definition as UseDefinition<PositionT>);
+  callback?.(definition as UseDefinition<TScope>);
 
-  return definition as UseDefinition<PositionT>;
+  return definition as UseDefinition<TScope>;
 }
 
 function useDefinitionBuilder(args: unknown[]): UseDefinitionBase {

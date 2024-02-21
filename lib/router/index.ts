@@ -8,7 +8,6 @@ import type {
   HTTPMethod,
   MiddlewareDefinition,
   MiddleworkerDefinition,
-  UsePosition,
   UseDefinition,
   RouteAssets,
   RouteEndpoint,
@@ -95,7 +94,7 @@ export function routeMapper(
       async (ctx, next) => {
         ctx.body = await middleworker(
           ctx.params as never,
-          ctx.payload as never,
+          ctx["@payload"] as never,
           ctx,
         );
         return next();
@@ -140,34 +139,22 @@ function usePartitioner(
     return ["@use", method, name || randomUUID()].join(":");
   };
 
-  for (const { use, name, $before, $after } of store.useGlobal) {
+  for (const { use, name, beforeMatch, afterMatch } of store.useGlobal) {
     const id = idFactory(name);
-    if ($before.includes(method)) {
+    if (beforeMatch(method)) {
       before[id] = use;
     }
-    if ($after.includes(method)) {
+    if (afterMatch(method)) {
       after[id] = use;
     }
   }
 
-  for (const { use, name, $before, $after } of useDefinitions) {
+  for (const { use, name, beforeMatch, afterMatch } of useDefinitions) {
     const id = idFactory(name);
-
-    const match = (p: UsePosition) => {
-      if (typeof p === "string") {
-        return p === method;
-      }
-      for (const [meth, regx] of Object.entries(p)) {
-        if (meth === method && regx.test?.(params)) {
-          return true;
-        }
-      }
-    };
-
-    if ($before.some(match)) {
+    if (beforeMatch(method, params)) {
       before[id] = use;
     }
-    if ($after.some(match)) {
+    if (afterMatch(method, params)) {
       after[id] = use;
     }
   }

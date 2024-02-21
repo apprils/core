@@ -73,24 +73,24 @@ export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
   ctx: ParameterizedContext<StateT, ContextT>,
 ) => MiddleworkerReturn;
 
-export type UsePosition = APIMethod | Record<APIMethod, RegExp>;
-export type UsePositionGlobal = APIMethod;
+export type UseScope = APIMethod | Record<APIMethod, RegExp>;
+export type UseScopeGlobal = APIMethod;
 
 export type UseDefinitionBase = {
   use: Middleware[];
   name?: keyof UseIdentities;
 };
 
-export type UseFactory<PositionT> = {
-  before: (...p: PositionT[]) => UseDefinition<PositionT>;
-  after: (...p: PositionT[]) => UseDefinition<PositionT>;
-  $before: PositionT[];
-  $after: PositionT[];
+export type UseFactory<TScope> = {
+  before: (...p: TScope[]) => UseDefinition<TScope>;
+  beforeMatch: (m: APIMethod, p?: string) => boolean;
+  after: (...p: TScope[]) => UseDefinition<TScope>;
+  afterMatch: (m: APIMethod, p?: string) => boolean;
 };
 
 // biome-ignore format:
-export type UseDefinition<PositionT = UsePosition> = UseDefinitionBase & UseFactory<
-  PositionT
+export type UseDefinition<TScope = UseScope> = UseDefinitionBase & UseFactory<
+  TScope
 >;
 
 // data provided to routeMapper
