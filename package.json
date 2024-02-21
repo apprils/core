@@ -78,9 +78,9 @@
     "@types/koa__router": "^12.0.4",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/node": "^20.11.19",
-    "esbuild": "^0.20.0",
+    "esbuild": "^0.20.1",
     "koa": "^2.15.0",
-    "release-it": "^17.1.0",
+    "release-it": "^17.1.1",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
