@@ -1,10 +1,11 @@
 import { join } from "path";
 import { randomUUID } from "crypto";
 
+import { type Middleware } from "koa";
+
 import type {
   APIMethod,
   HTTPMethod,
-  Middleware,
   MiddlewareDefinition,
   MiddleworkerDefinition,
   UsePosition,
@@ -18,6 +19,7 @@ import { pushRouteEndpoints } from "./print";
 
 export * from "./@types";
 export * from "./definitions";
+export * as default from "./definitions";
 export { debug, warnings } from "./print";
 
 type Definition = UseDefinition | MiddleworkerDefinition | MiddlewareDefinition;

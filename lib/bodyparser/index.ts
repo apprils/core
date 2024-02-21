@@ -3,7 +3,7 @@ import zlib from "zlib";
 import IncomingForm from "formidable";
 import rawParser from "raw-body";
 
-import type { Middleware } from "@appril/core/router";
+import type { Middleware } from "koa";
 
 import type {
   JsonOptions,

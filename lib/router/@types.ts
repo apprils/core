@@ -1,7 +1,15 @@
-import type { DefaultState, ParameterizedContext, Next } from "koa";
-import type { RouterParamContext } from "koa__router";
+import type {
+  DefaultState,
+  DefaultContext,
+  Middleware,
+  ParameterizedContext,
+} from "koa";
 
 declare module "koa" {
+  interface DefaultContext {
+    payload: Record<string, unknown>;
+  }
+
   interface Request {
     body?: unknown;
     rawBody: string;
@@ -26,24 +34,11 @@ export type APIMethod =
   | "post"
   | "del";
 
-export type { DefaultState, Next };
+// biome-ignore lint:
+export interface UseIdentities {}
 
-export type Ctx<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> = ParameterizedContext<
-  StateT,
-  ContextT & RouterParamContext<StateT, ContextT>
->;
-
-export interface DefaultContext {
-  payload: Record<string, unknown>;
-}
-
-export interface UseIdentities {
-  bodyparser: string;
-  payload: string;
-}
+// biome-ignore lint:
+export interface Meta {}
 
 export type MiddlewareDefinition<
   StateT = DefaultState,
@@ -54,11 +49,6 @@ export type MiddlewareDefinition<
   middleware: Middleware<StateT, ContextT>[];
   payloadValidation?: Middleware[];
 };
-
-export type Middleware<StateT = DefaultState, ContextT = DefaultContext> = (
-  ctx: Ctx<StateT, ContextT>,
-  next: Next,
-) => void;
 
 export type MiddleworkerDefinition<
   StateT = DefaultState,
@@ -80,7 +70,7 @@ type MiddleworkerReturn = any | Promise<any>;
 export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
   params: never,
   payload: never,
-  ctx: Ctx<StateT, ContextT>,
+  ctx: ParameterizedContext<StateT, ContextT>,
 ) => MiddleworkerReturn;
 
 export type UsePosition = APIMethod | Record<APIMethod, RegExp>;

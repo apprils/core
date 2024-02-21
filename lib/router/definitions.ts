@@ -1,6 +1,6 @@
+import type { DefaultState, DefaultContext, Middleware } from "koa";
+
 import type {
-  DefaultState,
-  DefaultContext,
   APIMethod,
   UseDefinition,
   UseDefinitionBase,
@@ -8,7 +8,6 @@ import type {
   UsePosition,
   UsePositionGlobal,
   MiddlewareDefinition,
-  Middleware,
   MiddleworkerDefinition,
   Middleworker,
 } from "./@types";
@@ -24,12 +23,12 @@ function head<StateT = DefaultState, ContextT = DefaultContext>(
 
 function head<StateT = DefaultState, ContextT = DefaultContext>(
   middleware: Middleware<StateT, ContextT>[],
-): MiddlewareDefinition<StateT>;
+): MiddlewareDefinition<StateT, ContextT>;
 
 function head<StateT = DefaultState, ContextT = DefaultContext>(
   params: string,
   middleware: Middleware<StateT, ContextT>[],
-): MiddlewareDefinition<StateT>;
+): MiddlewareDefinition<StateT, ContextT>;
 
 function head<StateT = DefaultState, ContextT = DefaultContext>(
   ...args: unknown[]
@@ -44,12 +43,12 @@ function options<StateT = DefaultState, ContextT = DefaultContext>(
 
 function options<StateT = DefaultState, ContextT = DefaultContext>(
   middleware: Middleware<StateT, ContextT>[],
-): MiddlewareDefinition<StateT>;
+): MiddlewareDefinition<StateT, ContextT>;
 
 function options<StateT = DefaultState, ContextT = DefaultContext>(
   params: string,
   middleware: Middleware<StateT, ContextT>[],
-): MiddlewareDefinition<StateT>;
+): MiddlewareDefinition<StateT, ContextT>;
 
 function options<StateT = DefaultState, ContextT = DefaultContext>(
   ...args: unknown[]
