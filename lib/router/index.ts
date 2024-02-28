@@ -28,10 +28,14 @@ type Definition = UseDefinition | MiddleworkerDefinition | MiddlewareDefinition;
 export function routeMapper(
   definitions: Definition[],
   routeAssets: RouteAssets,
-  middleworkerParams: Record<number, string>,
-  payloadValidation?: Record<number, Middleware[]>,
+  extraAssets?: {
+    middleworkerParams?: Record<number, string>;
+    payloadValidation?: Record<number, Middleware[]>;
+  },
 ): RouteEndpoint[] {
   const { name, path, file } = routeAssets;
+  const { middleworkerParams, payloadValidation } = extraAssets || {};
+
   const endpoints: RouteEndpoint[] = [];
 
   const useDefinitions: UseDefinition[] = [];
@@ -50,7 +54,7 @@ export function routeMapper(
       middleworkerDefinitions.push({
         ...definition,
         // biome-ignore format:
-        ...middleworkerParams[i]
+        ...middleworkerParams?.[i]
           ? { params: middleworkerParams[i] }
           : {},
         payloadValidation: payloadValidation?.[i],

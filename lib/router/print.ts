@@ -111,8 +111,10 @@ function padEnd(
 ): string {
   const suffixLength = maxlength - str.length;
 
-  const suffix =
-    suffixLength > 0 ? Array(suffixLength).fill(fill).join("") : "";
+  // biome-ignore format:
+  const suffix = suffixLength > 0
+    ? Array(suffixLength).fill(fill).join("")
+    : "";
 
   return decorate ? decorate(str) + suffix : str + suffix;
 }
