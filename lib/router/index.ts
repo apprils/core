@@ -98,7 +98,7 @@ export function routeMapper(
       async (ctx, next) => {
         ctx.body = await middleworker(
           ctx.params as never,
-          ctx["@payload"] as never,
+          ctx.payload as never,
           ctx,
         );
         return next();
