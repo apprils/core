@@ -11,20 +11,6 @@
   "files": [
     "pkg/*"
   ],
-  "// ✨ seems exports.types not fully supported by all editors yet?": "",
-  "typesVersions": {
-    "*": {
-      "router": [
-        "./pkg/router/index.d.ts"
-      ],
-      "queryparser": [
-        "./pkg/queryparser/index.d.ts"
-      ],
-      "bodyparser": [
-        "./pkg/bodyparser/index.d.ts"
-      ]
-    }
-  },
   "exports": {
     "./router": {
       "require": "./pkg/router/index.js",
@@ -40,22 +26,15 @@
     }
   },
   "scripts": {
-    "// ✨ lint": "",
+    "// ✨ linters": "",
     "lint": "biome lint ./lib",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ builders": "",
+    "esbuilder": "set -e; func() { e=$1; shift; esbuild lib/$e.ts --outfile=pkg/$e.js --bundle --platform=node --target=node20 --packages=external --sourcemap=inline $*; }; func",
     "// ✨ build": "",
-    "esbundler": "func() { e=$1; shift; esbuild $e --bundle --platform=node --target=node20 --packages=external $*; }; func",
-    "// ✨ build router": "",
-    "build:router": "npm run esbundler -- lib/router/index.ts --sourcemap=inline --outdir=pkg/router",
-    "postbuild:router": "tsc -p lib/router/tsconfig.json",
-    "// ✨ build queryparser": "",
-    "build:queryparser": "npm run esbundler -- lib/queryparser/index.ts --sourcemap=inline --outdir=pkg/queryparser",
-    "postbuild:queryparser": "tsc -p lib/queryparser/tsconfig.json",
-    "// ✨ build bodyparser": "",
-    "build:bodyparser": "npm run esbundler -- lib/bodyparser/index.ts --sourcemap=inline --outdir=pkg/bodyparser",
-    "postbuild:bodyparser": "tsc -p lib/bodyparser/tsconfig.json",
-    "// ✨ build package": "",
     "prebuild": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
-    "build": "set -e; npm run lint; for e in router queryparser bodyparser; do npm run build:$e; done"
+    "build": "set -e; npm run lint; npm run tsc; for e in router/index queryparser/index bodyparser/index; do npm run esbuilder $e; done"
   },
   "release-it": {
     "hooks": {
@@ -67,21 +46,21 @@
   "dependencies": {
     "formidable": "^3.5.1",
     "kleur": "^4.1.5",
-    "qs": "^6.11.2",
+    "qs": "^6.12.0",
     "raw-body": "^2.5.2"
   },
   "devDependencies": {
-    "@appril/tsconfig": "^0.2.3",
+    "@appril/tsconfig": "^0.2.5",
     "@biomejs/biome": "^1.5.3",
     "@types/formidable": "^3.4.5",
-    "@types/koa": "^2.14.0",
+    "@types/koa": "^2.15.0",
     "@types/koa__router": "^12.0.4",
     "@types/koa-bodyparser": "^4.3.12",
-    "@types/node": "^20.11.19",
+    "@types/node": "^20.11.25",
     "esbuild": "^0.20.1",
     "koa": "^2.15.0",
     "release-it": "^17.1.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.2"
   },
   "peerDependencies": {
     "@koa/router": "^12.0.1",

@@ -4,6 +4,6 @@
     "lib"
   ],
   "compilerOptions": {
-    "outDir": "var/tsc"
+    "outDir": "pkg"
   }
 }
